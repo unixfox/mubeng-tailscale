@@ -1,7 +1,6 @@
 module github.com/mubeng/mubeng
 
-go 1.21
-toolchain go1.23.4
+go 1.22
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
