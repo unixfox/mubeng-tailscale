@@ -50,9 +50,17 @@ Options:
     -s, --sync                       Syncrounus mode
     -w, --watch                      Watch proxy file, live-reload from changes
 
+  TAILSCALE (all options are optional)
+        --tailscale-auth <KEY>       Tailscale auth key for automatic device authentication
+        --tailscale-dir <DIR>        Directory to store Tailscale state files
+        --tailscale-control-url <URL> Custom Tailscale control server URL (e.g., Headscale)
+        --tailscale-ephemeral        Create ephemeral nodes (automatically removed when disconnected)
+
 Examples:
   mubeng -f proxies.txt --check --output live.txt
   mubeng -a localhost:8080 -f live.txt -r 10 -w
+  mubeng -a localhost:8080 -f tsnet_proxies.txt --tailscale-auth tskey-abc123
+  mubeng -a localhost:8080 -f tsnet_proxies.txt --tailscale-ephemeral --tailscale-control-url https://custom.headscale.net
 
 `
 )

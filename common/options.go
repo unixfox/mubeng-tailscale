@@ -32,4 +32,11 @@ type Options struct {
 	MaxErrors    int
 	MaxRedirects int
 	MaxRetries   int
+
+	// Tailscale options
+	TailscaleNodes     []string
+	TailscaleDir       string
+	TailscaleAuth      string
+	TailscaleControlURL string
+	TailscaleEphemeral bool
 }

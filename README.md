@@ -42,6 +42,7 @@
     - [Proxy format](#proxy-format)
     	- [Templating](#templating)
     	- [Amazon API Gateway](#amazon-api-gateway)
+    	- [Tailscale tsnet](#tailscale-tsnet)
 - [Limitations](#limitations)
 	- [Known Bugs](#known-bugs)
 - [Contributors](#contributors)
@@ -56,7 +57,7 @@
 - **Proxy IP rotator**: Rotates your IP address for every specified request.
 - **Proxy checker**: Verifies the availability of your proxy IPs.
 - **Supports all HTTP/S methods**.
-- **Compatible with HTTP, SOCKS v4(A), v5, and Amazon API Gateway** proxy protocols.
+- **Compatible with HTTP, SOCKS v4(A), v5, Amazon API Gateway, and Tailscale tsnet** proxy protocols.
 - **Passes all parameters and URIs**.
 - **User-friendly**: Simply run it against your proxy file and select the desired action.
 - **Cross-platform**: Runs seamlessly on Windows, Linux, Mac, and even Raspberry Pi.
@@ -367,6 +368,106 @@ This setup enables mubeng to automatically rotate traffic through multiple AWS r
 
 > [!NOTE]
 > Ensure your AWS credentials have the appropriate permissions to access API Gateway in the specified regions.
+
+#### Tailscale tsnet
+
+mubeng now supports using Tailscale nodes as proxies through the tsnet library. This allows you to route traffic through your Tailscale network nodes, providing secure and private proxy access.
+
+Format for Tailscale proxy strings:
+
+```
+tsnet://hostname
+tsnet://hostname:port
+```
+
+Where:
+- `hostname` is the name of your Tailscale node (without the `.ts.net` suffix)
+- `port` is the optional port number to connect to on the target node (1-65535)
+
+Example proxy list with Tailscale nodes:
+
+```
+# Regular HTTP/SOCKS proxies
+http://proxy1.example.com:8080
+socks5://proxy2.example.com:1080
+
+# Tailscale nodes without specific ports
+tsnet://node1
+tsnet://backup-server
+
+# Tailscale nodes with specific ports
+tsnet://web-proxy:80
+tsnet://secure-proxy:443
+tsnet://custom-proxy:3128
+tsnet://api-gateway:8080
+```
+
+**Setup:**
+
+1. Ensure the machine running mubeng is connected to your Tailscale network
+2. (Optional) Generate an auth key for automatic authentication:
+   ```bash
+   # Get an auth key from https://login.tailscale.com/admin/settings/keys
+   export TAILSCALE_AUTH_KEY="tskey-auth-your-key-here"
+   ```
+3. (Optional) If using a self-hosted control server like Headscale, note your control URL
+4. Create a proxy list file with tsnet URLs
+4. Start mubeng with optional Tailscale configuration:
+   ```bash
+   # Basic usage (no additional Tailscale configuration needed)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080
+   
+   # With auth key for automatic authentication (optional)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080 --tailscale-auth tskey-auth-your-key-here
+   
+   # With custom data directory (optional)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080 --tailscale-dir /custom/tailscale/data
+   
+   # With custom control server (optional, e.g., Headscale)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080 --tailscale-control-url https://headscale.example.com
+   
+   # With ephemeral nodes (optional, automatically removed when disconnected)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080 --tailscale-ephemeral
+   
+   # Combined configuration (all options are optional and can be mixed)
+   $ mubeng -f proxies_with_tsnet.txt -a :8080 \
+     --tailscale-auth tskey-auth-your-key \
+     --tailscale-control-url https://headscale.example.com \
+     --tailscale-ephemeral
+   ```
+
+**Command-line options:**
+
+- `--tailscale-auth <KEY>`: Tailscale auth key for automatic device authentication (optional)
+- `--tailscale-dir <DIR>`: Directory to store Tailscale state files (optional, default: system default)
+- `--tailscale-control-url <URL>`: Custom Tailscale control server URL (optional, useful for Headscale)
+- `--tailscale-ephemeral`: Create ephemeral nodes that are automatically removed when disconnected (optional)
+
+**Benefits:**
+
+- **Secure**: All traffic is encrypted end-to-end through the Tailscale network
+- **Private**: No need to expose proxy ports publicly
+- **Easy Setup**: Works with existing Tailscale infrastructure
+- **Cross-Platform**: Access nodes across different networks and platforms
+- **No Port Forwarding**: Bypass NAT and firewall restrictions
+- **Port Flexibility**: Specify custom ports for different services on the same node
+- **Self-Hosted Compatible**: Works with Headscale and other custom control servers
+- **Ephemeral Support**: Create temporary nodes that clean up automatically
+
+**Advanced Configuration:**
+
+- **Custom Control Server**: Use `--tailscale-control-url` to connect to Headscale or other self-hosted Tailscale-compatible control servers
+- **Ephemeral Nodes**: Use `--tailscale-ephemeral` to create temporary nodes that are automatically removed from your network when mubeng stops
+- **State Management**: Use `--tailscale-dir` to control where Tailscale stores its state files, useful for containerized deployments
+
+**Port Behavior:**
+
+- When no port is specified in the tsnet URL (e.g., `tsnet://node1`), the target port from the HTTP request is used
+- When a port is specified (e.g., `tsnet://node1:8080`), all connections through this proxy will be directed to that specific port on the target node
+- This allows you to route traffic to specific services running on different ports on your Tailscale nodes
+
+> [!TIP]
+> Use descriptive hostnames for your Tailscale nodes to make proxy management easier. You can set custom hostnames using `tailscale set --hostname=custom-name`.
 
 # Limitations
 

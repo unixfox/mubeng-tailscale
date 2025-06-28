@@ -67,6 +67,12 @@ func Options() *common.Options {
 	flag.IntVar(&opt.MaxRedirects, "max-redirs", 10, "")
 	flag.IntVar(&opt.MaxRetries, "max-retries", 0, "")
 
+	// Tailscale options
+	flag.StringVar(&opt.TailscaleAuth, "tailscale-auth", "", "")
+	flag.StringVar(&opt.TailscaleDir, "tailscale-dir", "", "")
+	flag.StringVar(&opt.TailscaleControlURL, "tailscale-control-url", "", "")
+	flag.BoolVar(&opt.TailscaleEphemeral, "tailscale-ephemeral", false, "")
+
 	flag.Usage = func() {
 		showBanner()
 		showUsage()

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/mubeng/mubeng/pkg/helper/awsurl"
+	"github.com/mubeng/mubeng/pkg/tsnet"
 )
 
 // New define HTTP client request of the [http.Request] itself.
@@ -32,6 +33,11 @@ func (proxy *Proxy) New(req *http.Request) (*http.Client, error) {
 
 	// if the proxy address is an AWS URL, return early.
 	if awsurl.IsURL(proxy.Address) {
+		return client, nil
+	}
+
+	// if the proxy address is a tsnet URL, return early.
+	if tsnet.IsTsnetURL(proxy.Address) {
 		return client, nil
 	}
 
@@ -70,4 +76,13 @@ func ToRetryableHTTPClient(client *http.Client) *retryablehttp.Client {
 	retryablehttpClient.HTTPClient = client
 
 	return retryablehttpClient
+}
+
+// InitTsnetManager initializes the global TsnetManager with configuration
+func InitTsnetManager(authKey, dataDir, controlURL string, ephemeral bool) {
+	if authKey != "" || dataDir != "" || controlURL != "" || ephemeral {
+		TsnetManager = tsnet.NewTsnetManagerWithConfig(authKey, dataDir, controlURL, ephemeral)
+	} else {
+		TsnetManager = tsnet.NewTsnetManager()
+	}
 }
