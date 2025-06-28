@@ -51,7 +51,7 @@ func (tm *TsnetManager) GetOrCreateServer(hostname string) (*tsnet.Server, error
 
 	server := &tsnet.Server{
 		Hostname: hostname,
-		Logf:     func(format string, args ...interface{}) {
+		Logf: func(format string, args ...interface{}) {
 			// Silent logging for now, can be made configurable
 		},
 	}
@@ -169,17 +169,17 @@ func ParseTsnetURL(url string) (hostname string, port string, err error) {
 	if colonIndex := strings.LastIndex(hostPort, ":"); colonIndex != -1 {
 		hostname = hostPort[:colonIndex]
 		port = hostPort[colonIndex+1:]
-		
+
 		// Validate hostname is not empty
 		if hostname == "" {
 			return "", "", fmt.Errorf("empty hostname in tsnet URL: %s", url)
 		}
-		
+
 		// Validate port is numeric
 		if port == "" {
 			return "", "", fmt.Errorf("empty port in tsnet URL: %s", url)
 		}
-		
+
 		// Basic port validation (1-65535)
 		if portNum, parseErr := strconv.Atoi(port); parseErr != nil || portNum < 1 || portNum > 65535 {
 			return "", "", fmt.Errorf("invalid port in tsnet URL: %s", url)

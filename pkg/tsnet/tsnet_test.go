@@ -41,18 +41,18 @@ func TestParseTsnetURL(t *testing.T) {
 		{"tsnet://host:65535", "host", "65535", false},
 		{"tsnet://host:1", "host", "1", false},
 		{"http://example.com", "", "", true},
-		{"tsnet://", "", "", true}, // Empty hostname should error
-		{"tsnet://:8080", "", "", true}, // Empty hostname with port should error
-		{"tsnet://host:0", "", "", true}, // Port 0 should error
+		{"tsnet://", "", "", true},           // Empty hostname should error
+		{"tsnet://:8080", "", "", true},      // Empty hostname with port should error
+		{"tsnet://host:0", "", "", true},     // Port 0 should error
 		{"tsnet://host:65536", "", "", true}, // Port > 65535 should error
-		{"tsnet://host:abc", "", "", true}, // Non-numeric port should error
-		{"tsnet://host:", "", "", true}, // Empty port should error
+		{"tsnet://host:abc", "", "", true},   // Non-numeric port should error
+		{"tsnet://host:", "", "", true},      // Empty port should error
 		{"", "", "", true},
 	}
 
 	for _, test := range tests {
 		hostname, port, err := ParseTsnetURL(test.url)
-		
+
 		if test.shouldError {
 			if err == nil {
 				t.Errorf("ParseTsnetURL(%s) expected error but got none", test.url)
@@ -86,7 +86,7 @@ func TestNewTsnetManagerWithConfig(t *testing.T) {
 	dataDir := "/tmp/tailscale"
 	controlURL := "https://headscale.example.com"
 	ephemeral := true
-	
+
 	manager := NewTsnetManagerWithConfig(authKey, dataDir, controlURL, ephemeral)
 	if manager == nil {
 		t.Error("NewTsnetManagerWithConfig() returned nil")

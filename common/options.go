@@ -34,9 +34,9 @@ type Options struct {
 	MaxRetries   int
 
 	// Tailscale options
-	TailscaleNodes     []string
-	TailscaleDir       string
-	TailscaleAuth      string
+	TailscaleNodes      []string
+	TailscaleDir        string
+	TailscaleAuth       string
 	TailscaleControlURL string
-	TailscaleEphemeral bool
+	TailscaleEphemeral  bool
 }
