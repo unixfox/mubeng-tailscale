@@ -7,13 +7,11 @@ import (
 	"github.com/mubeng/mubeng/internal/checker"
 	"github.com/mubeng/mubeng/internal/daemon"
 	"github.com/mubeng/mubeng/internal/server"
-	"github.com/mubeng/mubeng/pkg/mubeng"
 )
 
 // New to switch an action, whether to check or run a proxy server.
 func New(opt *common.Options) error {
-	// Initialize Tailscale tsnet manager with configuration
-	mubeng.InitTsnetManager(opt.TailscaleAuth, opt.TailscaleDir, opt.TailscaleControlURL, opt.TailscaleHostname, opt.TailscaleEphemeral)
+	// Note: Tailscale tsnet manager is now initialized in options.go before proxy validation
 
 	if opt.Address != "" {
 		if opt.Daemon {

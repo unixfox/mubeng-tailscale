@@ -47,9 +47,15 @@ func (tm *TsnetManager) GetOrCreateServer() (*tsnet.Server, error) {
 	}
 
 	server := &tsnet.Server{
+		Hostname: "", // Explicitly set to empty to avoid using binary name when using custom control URL
 		Logf: func(format string, args ...interface{}) {
 			// Silent logging for now, can be made configurable
 		},
+	}
+
+	// Set control URL first if provided
+	if tm.controlURL != "" {
+		server.ControlURL = tm.controlURL
 	}
 
 	// Set auth key if provided
@@ -60,11 +66,6 @@ func (tm *TsnetManager) GetOrCreateServer() (*tsnet.Server, error) {
 	// Set data directory if provided
 	if tm.dataDir != "" {
 		server.Dir = tm.dataDir
-	}
-
-	// Set control URL if provided
-	if tm.controlURL != "" {
-		server.ControlURL = tm.controlURL
 	}
 
 	// Set ephemeral mode if enabled

@@ -39,5 +39,4 @@ type Options struct {
 	TailscaleAuth       string
 	TailscaleControlURL string
 	TailscaleEphemeral  bool
-	TailscaleHostname   string
 }

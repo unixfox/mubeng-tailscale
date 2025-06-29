@@ -6,6 +6,7 @@ import (
 
 	"github.com/mubeng/mubeng/common"
 	"github.com/mubeng/mubeng/internal/updater"
+	"github.com/mubeng/mubeng/pkg/mubeng"
 	"github.com/projectdiscovery/gologger"
 )
 
@@ -72,7 +73,6 @@ func Options() *common.Options {
 	flag.StringVar(&opt.TailscaleDir, "tailscale-dir", "", "")
 	flag.StringVar(&opt.TailscaleControlURL, "tailscale-control-url", "", "")
 	flag.BoolVar(&opt.TailscaleEphemeral, "tailscale-ephemeral", false, "")
-	flag.StringVar(&opt.TailscaleHostname, "tailscale-hostname", "mubeng", "")
 
 	flag.Usage = func() {
 		showBanner()
@@ -90,6 +90,10 @@ func Options() *common.Options {
 			gologger.Fatal().Msgf("Error! %s.", err)
 		}
 	}
+
+	// Initialize Tailscale tsnet manager early, before proxy validation
+	// This ensures tsnet manager is configured before any tsnet URLs are processed
+	mubeng.InitTsnetManager(opt.TailscaleAuth, opt.TailscaleDir, opt.TailscaleControlURL, opt.TailscaleEphemeral)
 
 	if err := validate(opt); err != nil {
 		gologger.Fatal().Msgf("Error! %s.", err)
