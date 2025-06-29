@@ -46,25 +46,23 @@ func Transport(p string) (*http.Transport, error) {
 			return nil, fmt.Errorf("failed to create tsnet dialer: %w", err)
 		}
 
-		// Wrap the dialer to always connect to the specified hostname
-		tr.Dial = func(network, addr string) (net.Conn, error) {
-			// Replace the host part with our target hostname
-			_, originalPort, err := net.SplitHostPort(addr)
-			if err != nil {
-				// If no port specified, use the port from tsnet URL or default
-				if port != "" {
-					originalPort = port
-				} else {
-					originalPort = "80" // Default port
-				}
-			} else if port != "" {
-				// Override with port from tsnet URL if specified
-				originalPort = port
-			}
-			
-			targetAddr := net.JoinHostPort(hostname, originalPort)
-			return baseDialer(network, targetAddr)
+		// Determine the target address for the proxy
+		proxyAddr := hostname
+		if port != "" {
+			proxyAddr = net.JoinHostPort(hostname, port)
 		}
+
+		// Create a proxy URL that uses HTTP over the tsnet connection
+		proxyURL = &url.URL{
+			Scheme: "http",
+			Host:   proxyAddr,
+		}
+
+		// Set up the transport to use HTTP proxy functionality
+		tr.Proxy = http.ProxyURL(proxyURL)
+		
+		// Use the tsnet dialer for all connections
+		tr.Dial = baseDialer
 	} else {
 		proxyURL, err = url.Parse(p)
 		if err != nil {
