@@ -13,7 +13,7 @@ import (
 // New to switch an action, whether to check or run a proxy server.
 func New(opt *common.Options) error {
 	// Initialize Tailscale tsnet manager with configuration
-	mubeng.InitTsnetManager(opt.TailscaleAuth, opt.TailscaleDir, opt.TailscaleControlURL, opt.TailscaleEphemeral)
+	mubeng.InitTsnetManager(opt.TailscaleAuth, opt.TailscaleDir, opt.TailscaleControlURL, opt.TailscaleHostname, opt.TailscaleEphemeral)
 
 	if opt.Address != "" {
 		if opt.Daemon {

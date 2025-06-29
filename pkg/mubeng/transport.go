@@ -3,6 +3,7 @@ package mubeng
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 
@@ -39,12 +40,31 @@ func Transport(p string) (*http.Transport, error) {
 			TsnetManager = tsnet.NewTsnetManager()
 		}
 
-		dialer, err := TsnetManager.CreateDialerWithPort(hostname, port)
+		// Create a dialer that routes through Tailscale to the target hostname
+		baseDialer, err := TsnetManager.CreateDialerWithPort(port)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create tsnet dialer: %w", err)
 		}
 
-		tr.Dial = dialer
+		// Wrap the dialer to always connect to the specified hostname
+		tr.Dial = func(network, addr string) (net.Conn, error) {
+			// Replace the host part with our target hostname
+			_, originalPort, err := net.SplitHostPort(addr)
+			if err != nil {
+				// If no port specified, use the port from tsnet URL or default
+				if port != "" {
+					originalPort = port
+				} else {
+					originalPort = "80" // Default port
+				}
+			} else if port != "" {
+				// Override with port from tsnet URL if specified
+				originalPort = port
+			}
+			
+			targetAddr := net.JoinHostPort(hostname, originalPort)
+			return baseDialer(network, targetAddr)
+		}
 	} else {
 		proxyURL, err = url.Parse(p)
 		if err != nil {

@@ -72,6 +72,7 @@ func Options() *common.Options {
 	flag.StringVar(&opt.TailscaleDir, "tailscale-dir", "", "")
 	flag.StringVar(&opt.TailscaleControlURL, "tailscale-control-url", "", "")
 	flag.BoolVar(&opt.TailscaleEphemeral, "tailscale-ephemeral", false, "")
+	flag.StringVar(&opt.TailscaleHostname, "tailscale-hostname", "mubeng", "")
 
 	flag.Usage = func() {
 		showBanner()

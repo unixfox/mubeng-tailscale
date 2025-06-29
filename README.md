@@ -373,6 +373,11 @@ This setup enables mubeng to automatically rotate traffic through multiple AWS r
 
 mubeng now supports using Tailscale nodes as proxies through the tsnet library. This allows you to route traffic through your Tailscale network nodes, providing secure and private proxy access.
 
+**How it works:**
+- mubeng creates a single Tailscale node (with hostname "mubeng" by default)
+- When using `tsnet://hostname:port` URLs, mubeng routes traffic through the Tailscale network to the specified hostname
+- This provides secure, encrypted tunneling to any node in your Tailscale network
+
 Format for Tailscale proxy strings:
 
 ```
@@ -404,14 +409,14 @@ tsnet://api-gateway:8080
 
 **Setup:**
 
-1. Ensure the machine running mubeng is connected to your Tailscale network
+1. Ensure the machine running mubeng is connected to your Tailscale network (or will be connected automatically with auth key)
 2. (Optional) Generate an auth key for automatic authentication:
    ```bash
    # Get an auth key from https://login.tailscale.com/admin/settings/keys
    export TAILSCALE_AUTH_KEY="tskey-auth-your-key-here"
    ```
 3. (Optional) If using a self-hosted control server like Headscale, note your control URL
-4. Create a proxy list file with tsnet URLs
+4. Create a proxy list file with tsnet URLs pointing to target Tailscale nodes
 4. Start mubeng with optional Tailscale configuration:
    ```bash
    # Basic usage (no additional Tailscale configuration needed)

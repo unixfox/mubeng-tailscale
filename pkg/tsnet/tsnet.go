@@ -15,7 +15,7 @@ import (
 // TsnetManager manages Tailscale tsnet servers for proxy usage
 type TsnetManager struct {
 	mu         sync.RWMutex
-	servers    map[string]*tsnet.Server
+	server     *tsnet.Server
 	authKey    string
 	dataDir    string
 	controlURL string
@@ -24,15 +24,12 @@ type TsnetManager struct {
 
 // NewTsnetManager creates a new Tailscale tsnet manager
 func NewTsnetManager() *TsnetManager {
-	return &TsnetManager{
-		servers: make(map[string]*tsnet.Server),
-	}
+	return &TsnetManager{}
 }
 
 // NewTsnetManagerWithConfig creates a new Tailscale tsnet manager with configuration
 func NewTsnetManagerWithConfig(authKey, dataDir, controlURL string, ephemeral bool) *TsnetManager {
 	return &TsnetManager{
-		servers:    make(map[string]*tsnet.Server),
 		authKey:    authKey,
 		dataDir:    dataDir,
 		controlURL: controlURL,
@@ -40,17 +37,16 @@ func NewTsnetManagerWithConfig(authKey, dataDir, controlURL string, ephemeral bo
 	}
 }
 
-// GetOrCreateServer gets an existing tsnet server or creates a new one
-func (tm *TsnetManager) GetOrCreateServer(hostname string) (*tsnet.Server, error) {
+// GetOrCreateServer gets the tsnet server (creates it if not exists)
+func (tm *TsnetManager) GetOrCreateServer() (*tsnet.Server, error) {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
 
-	if server, exists := tm.servers[hostname]; exists {
-		return server, nil
+	if tm.server != nil {
+		return tm.server, nil
 	}
 
 	server := &tsnet.Server{
-		Hostname: hostname,
 		Logf: func(format string, args ...interface{}) {
 			// Silent logging for now, can be made configurable
 		},
@@ -76,18 +72,18 @@ func (tm *TsnetManager) GetOrCreateServer(hostname string) (*tsnet.Server, error
 		server.Ephemeral = tm.ephemeral
 	}
 
-	tm.servers[hostname] = server
+	tm.server = server
 	return server, nil
 }
 
-// CreateDialer creates a dialer for a specific Tailscale node
-func (tm *TsnetManager) CreateDialer(hostname string) (func(network, addr string) (net.Conn, error), error) {
-	return tm.CreateDialerWithPort(hostname, "")
+// CreateDialer creates a dialer for the Tailscale network
+func (tm *TsnetManager) CreateDialer() (func(network, addr string) (net.Conn, error), error) {
+	return tm.CreateDialerWithPort("")
 }
 
-// CreateDialerWithPort creates a dialer for a specific Tailscale node with optional port override
-func (tm *TsnetManager) CreateDialerWithPort(hostname, port string) (func(network, addr string) (net.Conn, error), error) {
-	server, err := tm.GetOrCreateServer(hostname)
+// CreateDialerWithPort creates a dialer for the Tailscale network with optional port override
+func (tm *TsnetManager) CreateDialerWithPort(port string) (func(network, addr string) (net.Conn, error), error) {
+	server, err := tm.GetOrCreateServer()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tsnet server: %w", err)
 	}
@@ -114,9 +110,9 @@ func (tm *TsnetManager) CreateDialerWithPort(hostname, port string) (func(networ
 	}, nil
 }
 
-// CreateHTTPClient creates an HTTP client that routes through a Tailscale node
-func (tm *TsnetManager) CreateHTTPClient(hostname string) (*http.Client, error) {
-	dialer, err := tm.CreateDialer(hostname)
+// CreateHTTPClient creates an HTTP client that routes through the Tailscale network
+func (tm *TsnetManager) CreateHTTPClient() (*http.Client, error) {
+	dialer, err := tm.CreateDialer()
 	if err != nil {
 		return nil, err
 	}
@@ -130,21 +126,19 @@ func (tm *TsnetManager) CreateHTTPClient(hostname string) (*http.Client, error) 
 	}, nil
 }
 
-// Shutdown closes all tsnet servers
+// Shutdown closes the tsnet server
 func (tm *TsnetManager) Shutdown() error {
 	tm.mu.Lock()
 	defer tm.mu.Unlock()
 
-	var lastErr error
-	for hostname, server := range tm.servers {
-		if err := server.Close(); err != nil {
-			lastErr = fmt.Errorf("failed to close server %s: %w", hostname, err)
+	if tm.server != nil {
+		if err := tm.server.Close(); err != nil {
+			return fmt.Errorf("failed to close tsnet server: %w", err)
 		}
+		tm.server = nil
 	}
 
-	// Clear the servers map
-	tm.servers = make(map[string]*tsnet.Server)
-	return lastErr
+	return nil
 }
 
 // IsTsnetURL checks if a URL represents a Tailscale node

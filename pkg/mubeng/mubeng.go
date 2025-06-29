@@ -79,7 +79,7 @@ func ToRetryableHTTPClient(client *http.Client) *retryablehttp.Client {
 }
 
 // InitTsnetManager initializes the global TsnetManager with configuration
-func InitTsnetManager(authKey, dataDir, controlURL string, ephemeral bool) {
+func InitTsnetManager(authKey, dataDir, controlURL, hostname string, ephemeral bool) {
 	if authKey != "" || dataDir != "" || controlURL != "" || ephemeral {
 		TsnetManager = tsnet.NewTsnetManagerWithConfig(authKey, dataDir, controlURL, ephemeral)
 	} else {

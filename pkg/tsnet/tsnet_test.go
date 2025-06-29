@@ -76,9 +76,6 @@ func TestNewTsnetManager(t *testing.T) {
 	if manager == nil {
 		t.Error("NewTsnetManager() returned nil")
 	}
-	if manager.servers == nil {
-		t.Error("NewTsnetManager() created manager with nil servers map")
-	}
 }
 
 func TestNewTsnetManagerWithConfig(t *testing.T) {
